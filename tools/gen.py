@@ -11,8 +11,8 @@ def bsdconv01(dt):
 	else:
 		return "01"+dt
 
-stp = re.compile(r"^(U\+|0[Xx])")
 bcv = Bsdconv("UTF-8:INSERT#AFTER=002C:BSDCONV-KEYWORD,BSDCONV")
+bcv1252 = Bsdconv("CP1252:INSERT#AFTER=002C:BSDCONV-KEYWORD,BSDCONV")
 
 d = pq(open(sys.argv[1]).read())
 
@@ -44,7 +44,7 @@ for ftype in fonttype:
 	fout = open("modules/inter/KHMER-"+ftype.upper()+".txt", "w")
 	data=[]
 	for f, t in  fwalk(ftype):
-		f = ",".join([bsdconv01(stp.sub("", x)) for x in f.split(";")])
+		f = bcv1252.conv(b"".join([chr(eval(x)) for x in f.split(";")])).rstrip(",")
 		t = bcv.conv(t.encode("utf-8")).rstrip(",")
 		data.append((f, t))
 	data = sorted(data)
