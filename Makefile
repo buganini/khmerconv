@@ -2,7 +2,7 @@ DESTDIR?=
 PREFIX?=/usr/local
 LOCALBASE?=${PREFIX}
 
-CFLAGS=-g -Wall -I${LOCALBASE}/include
+CFLAGS=-g -Wall -I${LOCALBASE}/include -O2
 LIBS=-L${LOCALBASE}/lib -lbsdconv
 
 TODO_CODECS=
@@ -32,11 +32,20 @@ codecs: builddir
 	for item in ${TODO_CODECS} ; do \
 		bsdconv-mktable modules/$${item}.txt ./build/share/bsdconv/$${item} ; \
 		if [ -e modules/$${item}.man ]; then cp modules/$${item}.man ./build/share/bsdconv/$${item}.man ; fi ; \
-		if [ -e modules/$${item}.c ]; then echo Build $${item}.so; $(CC) ${CFLAGS} modules/$${item}.c -L./build/lib/ -fPIC -shared -o ./build/share/bsdconv/$${item}.so -lbsdconv ${LIBS} ; fi ; \
+		if [ -e modules/$${item}.c ]; then echo Build $${item}.so; $(CC) ${CFLAGS} -D_BSDCONV_INTERNAL modules/$${item}.c -L./build/lib/ -fPIC -shared -o ./build/share/bsdconv/$${item}.so -lbsdconv ${LIBS} ; fi ; \
 	done
 
-install:
+install: install_main install_codecs
+
+install_main:
 	install -m 555 khmerconv ${DESTDIR}${PREFIX}/bin
+
+install_codecs:
+	for item in ${TODO_CODECS} ; do \
+		install -m 444 build/share/bsdconv/$${item} ${DESTDIR}${PREFIX}/share/bsdconv/$${item} ; \
+		if [ -e build/share/bsdconv/$${item}.man ]; then install -m 444 build/share/bsdconv/$${item}.man ${DESTDIR}${PREFIX}/share/bsdconv/$${item}.man ; fi ; \
+		if [ -e build/share/bsdconv/$${item}.so ]; then install -m 444 build/share/bsdconv/$${item}.so ${DESTDIR}${PREFIX}/share/bsdconv/$${item}.so ; fi ; \
+	done
 
 fetch:
 	@mkdir -p tmp
