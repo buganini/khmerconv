@@ -146,7 +146,17 @@ struct ll_s{
 };
 
 struct my_s{
+	struct data_rt D_MUUSIKATOAN;
+	struct data_rt D_TRIISAP;
+	struct data_rt D_NYO;
+	struct data_rt D_SRAOE;
+	struct data_rt D_SRAYA;
+	struct data_rt D_SRAIE;
+	struct data_rt D_SRAOO;
+	struct data_rt D_SRAAU;
+
 	int status;
+
 	struct data_rt *baseChar;
 	uint32_t baseChar_ucs;
 	struct data_rt *robat;
@@ -168,36 +178,28 @@ struct my_s{
 	int poSraA;
 };
 
-static struct data_rt D_MUUSIKATOAN;
-static struct data_rt D_TRIISAP;
-static struct data_rt D_NYO;
-static struct data_rt D_SRAOE;
-static struct data_rt D_SRAYA;
-static struct data_rt D_SRAIE;
-static struct data_rt D_SRAOO;
-static struct data_rt D_SRAAU;
 
 int cbcreate(struct bsdconv_instance *ins, struct bsdconv_hash_entry *arg){
 	struct my_s *r=malloc(sizeof(struct my_s));
 	THIS_CODEC(ins)->priv=r;
-	str2datum("0117C9", &D_MUUSIKATOAN);
-	str2datum("0117CA", &D_TRIISAP);
-	str2datum("011789", &D_NYO);
-	str2datum("0117BE", &D_SRAOE);
-	str2datum("0117BF", &D_SRAYA);
-	str2datum("0117C0", &D_SRAIE);
-	str2datum("0117C4", &D_SRAOO);
-	str2datum("0117C5", &D_SRAAU);
+	str2datum("0117C9", &r->D_MUUSIKATOAN);
+	str2datum("0117CA", &r->D_TRIISAP);
+	str2datum("011789", &r->D_NYO);
+	str2datum("0117BE", &r->D_SRAOE);
+	str2datum("0117BF", &r->D_SRAYA);
+	str2datum("0117C0", &r->D_SRAIE);
+	str2datum("0117C4", &r->D_SRAOO);
+	str2datum("0117C5", &r->D_SRAAU);
 
-	D_MUUSIKATOAN.flags=0;
-	D_TRIISAP.flags=0;
-	D_NYO.flags=0;
-	D_SRAOO.flags=0;
-	D_SRAOE.flags=0;
-	D_SRAYA.flags=0;
-	D_SRAIE.flags=0;
-	D_SRAOO.flags=0;
-	D_SRAAU.flags=0;
+	r->D_MUUSIKATOAN.flags=0;
+	r->D_TRIISAP.flags=0;
+	r->D_NYO.flags=0;
+	r->D_SRAOO.flags=0;
+	r->D_SRAOE.flags=0;
+	r->D_SRAYA.flags=0;
+	r->D_SRAIE.flags=0;
+	r->D_SRAOO.flags=0;
+	r->D_SRAAU.flags=0;
 
 	r->baseChar=NULL;
 	r->robat=NULL;
@@ -268,7 +270,7 @@ void cbflush(struct bsdconv_instance *ins){
 			CLEAR(r->vowel);
 			r->vowel_ucs = 0;
 			CLEAR(r->shifter1);
-			r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
+			r->shifter1 = dup_data_rt(ins, &r->D_MUUSIKATOAN);
 		}
 	}
 	// examine ifshifter1 should move shifter2 (base on coeng)
@@ -276,11 +278,11 @@ void cbflush(struct bsdconv_instance *ins){
 		int c = khmerType(r->coeng1_follower_ucs);
 		if(c & C_TRII){
 			CLEAR(r->shifter2);
-			r->shifter2 = dup_data_rt(ins, &D_TRIISAP);
+			r->shifter2 = dup_data_rt(ins, &r->D_TRIISAP);
 			CLEAR(r->shifter1);
 		}else if(c & C_MUUS){
 			CLEAR(r->shifter2);
-			r->shifter2 = dup_data_rt(ins, &D_MUUSIKATOAN);
+			r->shifter2 = dup_data_rt(ins, &r->D_MUUSIKATOAN);
 			CLEAR(r->shifter1);
 		}
 	}
@@ -306,7 +308,7 @@ void cbflush(struct bsdconv_instance *ins){
 			(r->poSraA && !underPoSraA && r->vowel) || ((r->baseChar_ucs == K_PO) && (r->vowel_ucs == K_SRAAA) && !underPoSraA)){
 			// change baseChar to letter NYO
 			CLEAR(r->baseChar);
-			r->baseChar = dup_data_rt(ins, &D_NYO);
+			r->baseChar = dup_data_rt(ins, &r->D_NYO);
 			if(r->vowel_ucs == K_SRAAA && !r->poSraA){
 				DATUM_FREE(r->vowel);
 				r->vowel_ucs = 0;
@@ -318,7 +320,7 @@ void cbflush(struct bsdconv_instance *ins){
 	if(r->poSraA && r->vowel_ucs == K_SRAE){
 		// PO + sraA is not NYO and there is leading sraE they should be recombined
 		DATUM_FREE(r->vowel);
-		r->vowel = dup_data_rt(ins, &D_SRAOO);
+		r->vowel = dup_data_rt(ins, &r->D_SRAOO);
 	}
 
 	// Rule of cluster
@@ -504,27 +506,27 @@ void cbconv(struct bsdconv_instance *ins){
 					switch(ucs){
 						case K_SRAII:
 							DATUM_FREE(r->vowel);
-							r->vowel = dup_data_rt(ins, &D_SRAOE);
+							r->vowel = dup_data_rt(ins, &r->D_SRAOE);
 							r->vowel_ucs = K_SRAOE;
 							break;
 						case K_SRAYA:
 							DATUM_FREE(r->vowel);
-							r->vowel = dup_data_rt(ins, &D_SRAYA);
+							r->vowel = dup_data_rt(ins, &r->D_SRAYA);
 							r->vowel_ucs = K_SRAYA;
 							break;
 						case K_SRAIE:
 							DATUM_FREE(r->vowel);
-							r->vowel = dup_data_rt(ins, &D_SRAIE);
+							r->vowel = dup_data_rt(ins, &r->D_SRAIE);
 							r->vowel_ucs = K_SRAIE;
 							break;
 						case K_SRAAA:
 							DATUM_FREE(r->vowel);
-							r->vowel = dup_data_rt(ins, &D_SRAOO);
+							r->vowel = dup_data_rt(ins, &r->D_SRAOO);
 							r->vowel_ucs = K_SRAOO;
 							break;
 						case K_SRAAU:
 							DATUM_FREE(r->vowel);
-							r->vowel = dup_data_rt(ins, &D_SRAAU);
+							r->vowel = dup_data_rt(ins, &r->D_SRAAU);
 							r->vowel_ucs = K_SRAAU;
 							break;
 					}
@@ -542,19 +544,19 @@ void cbconv(struct bsdconv_instance *ins){
 					// select shifter1 base on specific consonants
 					if(r->baseChar && (khmerType(r->baseChar_ucs) & C_TRII)){
 						CLEAR(r->shifter1);
-						r->shifter1 = dup_data_rt(ins, &D_TRIISAP);
+						r->shifter1 = dup_data_rt(ins, &r->D_TRIISAP);
 					}else{
 						CLEAR(r->shifter1);
-						r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
+						r->shifter1 = dup_data_rt(ins, &r->D_MUUSIKATOAN);
 					}
 					// examine if shifter1 should move shifter2 (base on coeng SA)
 				}else if((r->vowel_ucs == K_SRAE) && (ucs == K_SRAU)){
 					if(r->baseChar && (khmerType(r->baseChar_ucs) & C_TRII)){
 						CLEAR(r->shifter1);
-						r->shifter1 = dup_data_rt(ins, &D_TRIISAP);
+						r->shifter1 = dup_data_rt(ins, &r->D_TRIISAP);
 					}else{
 						CLEAR(r->shifter1);
-						r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
+						r->shifter1 = dup_data_rt(ins, &r->D_MUUSIKATOAN);
 					}
 				}else{
 					// sign can't be combine -> end of cluster
@@ -585,14 +587,14 @@ void cbconv(struct bsdconv_instance *ins){
 void cbdestroy(struct bsdconv_instance *ins){
 	struct my_s *r=THIS_CODEC(ins)->priv;
 
-	free(D_MUUSIKATOAN.data);
-	free(D_TRIISAP.data);
-	free(D_NYO.data);
-	free(D_SRAOE.data);
-	free(D_SRAYA.data);
-	free(D_SRAIE.data);
-	free(D_SRAOO.data);
-	free(D_SRAAU.data);
+	free(r->D_MUUSIKATOAN.data);
+	free(r->D_TRIISAP.data);
+	free(r->D_NYO.data);
+	free(r->D_SRAOE.data);
+	free(r->D_SRAYA.data);
+	free(r->D_SRAIE.data);
+	free(r->D_SRAOO.data);
+	free(r->D_SRAAU.data);
 
 	cbinit(ins);
 	free(r);
