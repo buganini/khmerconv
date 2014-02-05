@@ -267,6 +267,7 @@ void cbflush(struct bsdconv_instance *ins){
 			DATUM_FREE(r->vowel);
 			CLEAR(r->vowel);
 			r->vowel_ucs = 0;
+			CLEAR(r->shifter1);
 			r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
 		}
 	}
@@ -274,13 +275,13 @@ void cbflush(struct bsdconv_instance *ins){
 	if(r->shifter1 && r->coeng1){
 		int c = khmerType(r->coeng1_follower_ucs);
 		if(c & C_TRII){
-			r->shifter2=dup_data_rt(ins, &D_TRIISAP);
-			DATUM_FREE(r->shifter1);
-			r->shifter1 = NULL;
+			CLEAR(r->shifter2);
+			r->shifter2 = dup_data_rt(ins, &D_TRIISAP);
+			CLEAR(r->shifter1);
 		}else if(c & C_MUUS){
+			CLEAR(r->shifter2);
 			r->shifter2 = dup_data_rt(ins, &D_MUUSIKATOAN);
-			DATUM_FREE(r->shifter1);
-			r->shifter1 = NULL;
+			CLEAR(r->shifter1);
 		}
 	}
 	// examine if PO + sraA > NYO, this case can only determin
@@ -305,7 +306,7 @@ void cbflush(struct bsdconv_instance *ins){
 			(r->poSraA && !underPoSraA && r->vowel) || ((r->baseChar_ucs == K_PO) && (r->vowel_ucs == K_SRAAA) && !underPoSraA)){
 			// change baseChar to letter NYO
 			CLEAR(r->baseChar);
-			r->baseChar=dup_data_rt(ins, &D_NYO);
+			r->baseChar = dup_data_rt(ins, &D_NYO);
 			if(r->vowel_ucs == K_SRAAA && !r->poSraA){
 				DATUM_FREE(r->vowel);
 				r->vowel_ucs = 0;
@@ -317,7 +318,7 @@ void cbflush(struct bsdconv_instance *ins){
 	if(r->poSraA && r->vowel_ucs == K_SRAE){
 		// PO + sraA is not NYO and there is leading sraE they should be recombined
 		DATUM_FREE(r->vowel);
-		r->vowel=dup_data_rt(ins, &D_SRAOO);
+		r->vowel = dup_data_rt(ins, &D_SRAOO);
 	}
 
 	// Rule of cluster
@@ -490,6 +491,7 @@ void cbconv(struct bsdconv_instance *ins){
 			}else if((r->baseChar_ucs == K_PO) && (!r->poSraA) && ((ucs == K_SRAAA) || (r->vowel_ucs == K_SRAAA))){
 				r->poSraA = 1;
 				if(r->vowel_ucs == K_SRAAA){
+					DATUM_FREE(r->vowel);
 					r->vowel = dup_data_rt(ins, curr);
 					r->vowel_ucs = ucs;
 					CLEAR(r->keep);
@@ -539,16 +541,20 @@ void cbconv(struct bsdconv_instance *ins){
 					}
 					// select shifter1 base on specific consonants
 					if(r->baseChar && (khmerType(r->baseChar_ucs) & C_TRII)){
-						r->shifter1=dup_data_rt(ins, &D_TRIISAP);
+						CLEAR(r->shifter1);
+						r->shifter1 = dup_data_rt(ins, &D_TRIISAP);
 					}else{
-						r->shifter1=dup_data_rt(ins, &D_MUUSIKATOAN);
+						CLEAR(r->shifter1);
+						r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
 					}
 					// examine if shifter1 should move shifter2 (base on coeng SA)
 				}else if((r->vowel_ucs == K_SRAE) && (ucs == K_SRAU)){
 					if(r->baseChar && (khmerType(r->baseChar_ucs) & C_TRII)){
-						r->shifter1=dup_data_rt(ins, &D_TRIISAP);
+						CLEAR(r->shifter1);
+						r->shifter1 = dup_data_rt(ins, &D_TRIISAP);
 					}else{
-						r->shifter1=dup_data_rt(ins, &D_MUUSIKATOAN);
+						CLEAR(r->shifter1);
+						r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
 					}
 				}else{
 					// sign can't be combine -> end of cluster
@@ -561,9 +567,11 @@ void cbconv(struct bsdconv_instance *ins){
 			if(ucs == K_ZWSP){
 				// avoid breaking of cluster ifmeet zwsp
 				// and move zwsp to end of cluster
+				CLEAR(r->keep);
 				r->keep = dup_data_rt(ins, curr);
 				CONTINUE();
 			}else{
+				CLEAR(r->keep);
 				r->keep = dup_data_rt(ins, curr);
 				cbflush(ins);
 				this_phase->state.status=NEXTPHASE;
