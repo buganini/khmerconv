@@ -301,11 +301,13 @@ void cbflush(struct bsdconv_instance *ins){
 	if(underPoSraA && underPoSraA_follower){
 		int underPoSraA = khmerType(underPoSraA_follower_ucs) & C_POSRAA;
 		// test if coeng is allow under PO + SRAA
-		if((r->poSraA && underPoSraA==NULL && r->vowel) || ((r->baseChar_ucs == K_PO) && (r->vowel_ucs == K_SRAAA) && underPoSraA==NULL)){
+		if(
+			(r->poSraA && !underPoSraA && r->vowel) || ((r->baseChar_ucs == K_PO) && (r->vowel_ucs == K_SRAAA) && !underPoSraA)){
 			// change baseChar to letter NYO
+			CLEAR(r->baseChar);
 			r->baseChar=dup_data_rt(ins, &D_NYO);
 			if(r->vowel_ucs == K_SRAAA && !r->poSraA){
-				r->vowel = NULL;
+				DATUM_FREE(r->vowel);
 				r->vowel_ucs = 0;
 			}
 		}
@@ -417,7 +419,7 @@ void cbconv(struct bsdconv_instance *ins){
 			r->coeng1 = dup_data_rt(ins, r->coeng_bak);
 			r->coeng1_follower = dup_data_rt(ins, curr);
 			r->coeng1_follower_ucs = ucs;
-			r->coeng_bak=NULL;
+			r->coeng_bak = NULL;
 			CLEAR(r->keep);
 			CONTINUE();
 
@@ -426,7 +428,7 @@ void cbconv(struct bsdconv_instance *ins){
 			r->coeng2 = dup_data_rt(ins, r->coeng_bak);
 			r->coeng2_follower = dup_data_rt(ins, curr);
 			r->coeng2_follower_ucs = ucs;
-			r->coeng_bak=NULL;
+			r->coeng_bak = NULL;
 			CLEAR(r->keep);
 			CONTINUE();
 		}else{
@@ -469,7 +471,6 @@ void cbconv(struct bsdconv_instance *ins){
 			r->sign_ucs = ucs;
 			CLEAR(r->keep);
 			CONTINUE();
-
 		}else if(sinType & C_COENG){
 			r->coeng_bak = curr;
 			this_phase->state.data = NULL;
