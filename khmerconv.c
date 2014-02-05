@@ -405,6 +405,7 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 	rnd=0;
 	flush=0;
  	candidates = sizeof(codecs2)/sizeof(struct codec);
+	max_i=-1;
 	while(candidates > 1 && !flush){
 		rnd += 1;
 		if(verbose){
@@ -439,7 +440,7 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 			if(codecs2[i].up!=1)
 				continue;
 			if(codecs2[i].wv > codecs2[max_i].wv){
-				codecs1[max_i].up=0;
+				codecs2[max_i].up=0;
 				max_i=i;
 				candidates-=1;
 			}else if(codecs2[i].wv < codecs2[max_i].wv){
