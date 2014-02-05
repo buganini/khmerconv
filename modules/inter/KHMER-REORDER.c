@@ -1,5 +1,4 @@
 #include <bsdconv.h>
-#include <stdio.h>
 
 /*
  * This program takes input as unordered khmer unicode string and produce
@@ -245,17 +244,10 @@ void cbinit(struct bsdconv_instance *ins){
 	r->poSraA=0;
 }
 
-	// fprintf(stderr, "CONCAT "); \
-	// int i; \
-	// for(i=0;i<d->len;++i){ \
-	// 	fprintf(stderr, "%02X", UCP(d->data)[i]); \
-	// } \
-	// fprintf(stderr, "\n"); \
-
 #define CONCAT(d) do{ \
-	this_phase->data_tail->next=(d); \
-	this_phase->data_tail=this_phase->data_tail->next; \
-	d=NULL; \
+	this_phase->data_tail->next = (d); \
+	this_phase->data_tail = this_phase->data_tail->next; \
+	d = NULL; \
 }while(0);
 
 void cbflush(struct bsdconv_instance *ins){
@@ -265,7 +257,7 @@ void cbflush(struct bsdconv_instance *ins){
 	if(r->coeng_bak){
 		CLEAR(r->coeng1);
 		r->coeng1 = dup_data_rt(ins, r->coeng_bak);
-		r->coeng_bak=NULL;
+		r->coeng_bak = NULL;
 	}
 
 	// Organization of a cluster{
@@ -365,19 +357,19 @@ void cbflush(struct bsdconv_instance *ins){
 	if(r->keep)
 		CONCAT(r->keep);
 
-	this_phase->data_tail->next=NULL;
+	this_phase->data_tail->next = NULL;
 
 	cbinit(ins);
 }
 
 #define YIELD() do{ \
 	cbflush(ins); \
-	this_phase->state.status=YIELD; \
+	this_phase->state.status = YIELD; \
 	return; \
 }while(0);
 
 #define CONTINUE() do{ \
-	this_phase->state.status=CONTINUE; \
+	this_phase->state.status = CONTINUE; \
 	return; \
 }while(0);
 
@@ -395,16 +387,16 @@ void cbconv(struct bsdconv_instance *ins){
 	unsigned char *data=UCP(curr->data);
 
 	if(curr->len==0){
-		this_phase->state.status=NOOP;
+		this_phase->state.status = NOOP;
 		return;
 	}
 	if(data[0]!=0x1){
 		this_phase->flags &= ~(F_MATCH | F_PENDING);
-		this_phase->state.status=DEADEND;
+		this_phase->state.status = DEADEND;
 		return;
 	}
 
-	this_phase->state.status=CONTINUE;
+	this_phase->state.status = CONTINUE;
 
 	for(i=1;i<curr->len;++i){
 		ucs<<=8;
@@ -442,7 +434,7 @@ void cbconv(struct bsdconv_instance *ins){
 		}
 	}else{
 		int sinType = khmerType(ucs);
-		//fprintf(stderr, "DATA U+%04X %d\n", ucs, sinType);
+
 		if(sinType & C_BASE){
 			if(r->baseChar){
 				// second baseChar -> end of cluster
@@ -480,8 +472,8 @@ void cbconv(struct bsdconv_instance *ins){
 
 		}else if(sinType & C_COENG){
 			r->coeng_bak = curr;
-			this_phase->state.data=NULL;
-			this_phase->state.status=SUBMATCH;
+			this_phase->state.data = NULL;
+			this_phase->state.status = SUBMATCH;
 			return;
 		}else if(sinType & C_VOWEL){
 			if(r->vowel == NULL){
@@ -571,7 +563,6 @@ void cbconv(struct bsdconv_instance *ins){
 				r->keep = dup_data_rt(ins, curr);
 				CONTINUE();
 			}else{
-				//fprintf(stderr, "NOT KHMER\n");
 				r->keep = dup_data_rt(ins, curr);
 				cbflush(ins);
 				this_phase->state.status=NEXTPHASE;
