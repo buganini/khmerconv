@@ -480,7 +480,8 @@ void cbconv(struct bsdconv_instance *ins){
 
 		}else if(sinType & C_COENG){
 			r->coeng_bak = curr;
-			this_phase->state.status=CONTINUE;
+			this_phase->state.data=NULL;
+			this_phase->state.status=SUBMATCH;
 			return;
 		}else if(sinType & C_VOWEL){
 			if(r->vowel == NULL){
