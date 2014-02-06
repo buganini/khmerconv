@@ -219,7 +219,7 @@ int cbcreate(struct bsdconv_instance *ins, struct bsdconv_hash_entry *arg){
 }
 
 #define CLEAR(X) if(X){ \
-	DATUM_FREE(X); \
+	DATUM_FREE(ins, X); \
 	X=NULL; \
 }
 
@@ -266,7 +266,7 @@ void cbflush(struct bsdconv_instance *ins){
 	if((r->vowel_ucs == K_SRAU) && (r->sign) && (khmerType(r->sign_ucs) & C_WITHU)){
 		// samyoksanha + sraU --> MUUS + samyoksanha
 		if(r->sign_ucs == K_SAMYOKSANNYA){
-			DATUM_FREE(r->vowel);
+			DATUM_FREE(ins, r->vowel);
 			CLEAR(r->vowel);
 			r->vowel_ucs = 0;
 			CLEAR(r->shifter1);
@@ -310,7 +310,7 @@ void cbflush(struct bsdconv_instance *ins){
 			CLEAR(r->baseChar);
 			r->baseChar = dup_data_rt(ins, &r->D_NYO);
 			if(r->vowel_ucs == K_SRAAA && !r->poSraA){
-				DATUM_FREE(r->vowel);
+				DATUM_FREE(ins, r->vowel);
 				r->vowel_ucs = 0;
 			}
 		}
@@ -319,7 +319,7 @@ void cbflush(struct bsdconv_instance *ins){
 	// PO + SraA + SraE
 	if(r->poSraA && r->vowel_ucs == K_SRAE){
 		// PO + sraA is not NYO and there is leading sraE they should be recombined
-		DATUM_FREE(r->vowel);
+		DATUM_FREE(ins, r->vowel);
 		r->vowel = dup_data_rt(ins, &r->D_SRAOO);
 	}
 
@@ -493,7 +493,7 @@ void cbconv(struct bsdconv_instance *ins){
 			}else if((r->baseChar_ucs == K_PO) && (!r->poSraA) && ((ucs == K_SRAAA) || (r->vowel_ucs == K_SRAAA))){
 				r->poSraA = 1;
 				if(r->vowel_ucs == K_SRAAA){
-					DATUM_FREE(r->vowel);
+					DATUM_FREE(ins, r->vowel);
 					r->vowel = dup_data_rt(ins, curr);
 					r->vowel_ucs = ucs;
 					CLEAR(r->keep);
@@ -505,27 +505,27 @@ void cbconv(struct bsdconv_instance *ins){
 					// possible combination for sra E
 					switch(ucs){
 						case K_SRAII:
-							DATUM_FREE(r->vowel);
+							DATUM_FREE(ins, r->vowel);
 							r->vowel = dup_data_rt(ins, &r->D_SRAOE);
 							r->vowel_ucs = K_SRAOE;
 							break;
 						case K_SRAYA:
-							DATUM_FREE(r->vowel);
+							DATUM_FREE(ins, r->vowel);
 							r->vowel = dup_data_rt(ins, &r->D_SRAYA);
 							r->vowel_ucs = K_SRAYA;
 							break;
 						case K_SRAIE:
-							DATUM_FREE(r->vowel);
+							DATUM_FREE(ins, r->vowel);
 							r->vowel = dup_data_rt(ins, &r->D_SRAIE);
 							r->vowel_ucs = K_SRAIE;
 							break;
 						case K_SRAAA:
-							DATUM_FREE(r->vowel);
+							DATUM_FREE(ins, r->vowel);
 							r->vowel = dup_data_rt(ins, &r->D_SRAOO);
 							r->vowel_ucs = K_SRAOO;
 							break;
 						case K_SRAAU:
-							DATUM_FREE(r->vowel);
+							DATUM_FREE(ins, r->vowel);
 							r->vowel = dup_data_rt(ins, &r->D_SRAAU);
 							r->vowel_ucs = K_SRAAU;
 							break;
@@ -537,7 +537,7 @@ void cbconv(struct bsdconv_instance *ins){
 				}else if((r->vowel_ucs == K_SRAU && (sinType & C_WITHU)) || ((khmerType(r->vowel_ucs) & C_WITHU) && ucs == K_SRAU)){
 					// vowel is not Sra I, II, Y, YY, transfer value from sin[i] to vowel
 					if(!(khmerType(r->vowel_ucs) & C_WITHU)){
-						DATUM_FREE(r->vowel);
+						DATUM_FREE(ins, r->vowel);
 						r->vowel = dup_data_rt(ins, curr);
 						r->vowel_ucs = ucs;
 					}
