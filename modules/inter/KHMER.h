@@ -120,7 +120,7 @@ int KHMERCHAR[] = {
 	C_SIGN
 };
 
-static int khmerType(uint32_t ucs){
+static inline int khmerType(uint32_t ucs){
 	/*
 	 * input one unicode character;
 	 * output an integer which is the Khmer type of the character or 0
