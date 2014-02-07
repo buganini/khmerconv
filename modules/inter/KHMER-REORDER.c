@@ -255,8 +255,8 @@ void cbflush(struct bsdconv_instance *ins){
 	return; \
 }while(0);
 
-#define CONTINUE() do{ \
-	this_phase->state.status = CONTINUE; \
+#define SUBMATCH() do{ \
+	this_phase->state.status = SUBMATCH; \
 	return; \
 }while(0);
 
@@ -283,12 +283,13 @@ void cbconv(struct bsdconv_instance *ins){
 		return;
 	}
 
-	this_phase->state.status = CONTINUE;
+	this_phase->state.status = SUBMATCH;
 
 	for(i=1;i<curr->len;++i){
 		ucs<<=8;
 		ucs|=data[i];
 	}
+
 	if(r->coeng_bak){
 		// if it is coeng RO (and consonent is not blank), it must belong to next cluster
 		// so finish this cluster
@@ -305,7 +306,7 @@ void cbconv(struct bsdconv_instance *ins){
 			r->coeng1_follower_ucs = ucs;
 			r->coeng_bak = NULL;
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 
 		// coeng1 is coeng RO, the cluster can have two coeng, dump coeng to coeng2
 		}else if(r->coeng1_follower_ucs == K_RO){
@@ -316,8 +317,10 @@ void cbconv(struct bsdconv_instance *ins){
 			r->coeng2_follower_ucs = ucs;
 			r->coeng_bak = NULL;
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 		}else{
+			this_phase->curr = r->coeng_bak;
+			r->coeng_bak = NULL;
 			YIELD();
 		}
 	}else{
@@ -331,7 +334,7 @@ void cbconv(struct bsdconv_instance *ins){
 			r->baseChar = dup_data_rt(ins, curr);
 			r->baseChar_ucs = ucs;
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 		}else if(sinType & C_ROBAT){
 			if(r->robat){
 				// second robat -> end of cluster
@@ -339,7 +342,7 @@ void cbconv(struct bsdconv_instance *ins){
 			}
 			r->robat = dup_data_rt(ins, curr);
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 		}else if(sinType & C_SHIFTER){
 			if(r->shifter1){
 				// second shifter -> end of cluster
@@ -347,7 +350,7 @@ void cbconv(struct bsdconv_instance *ins){
 			}
 			r->shifter1 = dup_data_rt(ins, curr);
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 		}else if(sinType & C_SIGN){
 			if(r->sign){
 				// second sign -> end of cluster
@@ -356,7 +359,7 @@ void cbconv(struct bsdconv_instance *ins){
 			r->sign = dup_data_rt(ins, curr);
 			r->sign_ucs = ucs;
 			CLEAR(r->keep);
-			CONTINUE();
+			SUBMATCH();
 		}else if(sinType & C_COENG){
 			r->coeng_bak = curr;
 			this_phase->state.data = NULL;
@@ -454,7 +457,7 @@ void cbconv(struct bsdconv_instance *ins){
 				// and move zwsp to end of cluster
 				CLEAR(r->keep);
 				r->keep = dup_data_rt(ins, curr);
-				CONTINUE();
+				SUBMATCH();
 			}else{
 				CLEAR(r->keep);
 				r->keep = dup_data_rt(ins, curr);
@@ -463,7 +466,7 @@ void cbconv(struct bsdconv_instance *ins){
 				return;
 			}
 		}
-		CONTINUE();
+		SUBMATCH();
 	}
 }
 
