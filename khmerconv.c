@@ -513,6 +513,10 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 	e=bsdconv_counter(ins, "OERR");
 	r+=*e;
 
+	if(tmp){
+		fclose(tmp);
+	}
+
 	return r;
 }
 
