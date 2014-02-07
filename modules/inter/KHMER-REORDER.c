@@ -8,13 +8,6 @@
 
 #include "KHMER.h"
 
-struct ll_s{
-	struct data_rt *p;
-	int ccc;
-	struct ll_s *prev;
-	struct ll_s *next;
-};
-
 struct my_s{
 	struct data_rt *baseChar;
 	uint32_t baseChar_ucs;
@@ -152,18 +145,17 @@ void cbflush(struct bsdconv_instance *ins){
 		r->coeng_bak = NULL;
 	}
 
-	// Organization of a cluster{
+	// Organization of a cluster
 	if((r->vowel_ucs == K_SRAU) && (r->sign) && (khmerType(r->sign_ucs) & C_WITHU)){
 		// samyoksanha + sraU --> MUUS + samyoksanha
 		if(r->sign_ucs == K_SAMYOKSANNYA){
-			DATUM_FREE(ins, r->vowel);
 			CLEAR(r->vowel);
 			r->vowel_ucs = 0;
 			CLEAR(r->shifter1);
 			r->shifter1 = dup_data_rt(ins, &D_MUUSIKATOAN);
 		}
 	}
-	// examine ifshifter1 should move shifter2 (base on coeng)
+	// examine if shifter1 should move shifter2 (base on coeng)
 	if(r->shifter1 && r->coeng1){
 		int c = khmerType(r->coeng1_follower_ucs);
 		if(c & C_TRII){
@@ -200,7 +192,7 @@ void cbflush(struct bsdconv_instance *ins){
 			CLEAR(r->baseChar);
 			r->baseChar = dup_data_rt(ins, &D_NYO);
 			if(r->vowel_ucs == K_SRAAA && !r->poSraA){
-				DATUM_FREE(ins, r->vowel);
+				CLEAR(r->vowel);
 				r->vowel_ucs = 0;
 			}
 		}
@@ -297,7 +289,6 @@ void cbconv(struct bsdconv_instance *ins){
 		ucs<<=8;
 		ucs|=data[i];
 	}
-
 	if(r->coeng_bak){
 		// if it is coeng RO (and consonent is not blank), it must belong to next cluster
 		// so finish this cluster
@@ -318,6 +309,8 @@ void cbconv(struct bsdconv_instance *ins){
 
 		// coeng1 is coeng RO, the cluster can have two coeng, dump coeng to coeng2
 		}else if(r->coeng1_follower_ucs == K_RO){
+			CLEAR(r->coeng2);
+			CLEAR(r->coeng2_follower);
 			r->coeng2 = dup_data_rt(ins, r->coeng_bak);
 			r->coeng2_follower = dup_data_rt(ins, curr);
 			r->coeng2_follower_ucs = ucs;
