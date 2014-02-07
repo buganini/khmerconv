@@ -522,7 +522,7 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 
 static void usage(void){
 	(void)fprintf(stderr,
-		"usage: chiconv [-bug] [-i bufsiz]\n"
+		"usage: khmerconv [-bug] [-i bufsiz]\n"
 		"\t -i\tSave in-place if no error\n"
 		"\t -f\tSave in-place regardless of errors (implies -i)\n"
 		"\t -s\tBuffer size used for encoding2 detection, default=8192\n"
