@@ -266,36 +266,60 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
+static char *inputbuf=NULL;
+static size_t inputlen;
+
 static int input(FILE *fi, FILE *tmp, char **ib, size_t *len, int *rwnd){
+	if(inputbuf==NULL){
+		inputbuf=malloc(bufsiz);
+	}
+	// Assuming fi is seekable, for debug use
+	// if(rwnd && *rwnd != 0){
+	// 	*rwnd = 0;
+	// 	fseek(fi, 0L, SEEK_SET);
+	// }
+	// *ib=malloc(bufsiz);
+	// *len=fread(*ib, 1, bufsiz, fi);
+	// if(feof(fi))
+	// 	return 1;
+	// return 0;
 	if(rwnd == NULL){
-		*ib = malloc(bufsiz);
-		*len = fread(*ib, 1, bufsiz, fi);
-		if(tmp != NULL)
-			fwrite(*ib, *len, 1, tmp);
+		*len = inputlen = fread(inputbuf, 1, bufsiz, fi);
+		*ib = malloc(inputlen);
+		memcpy(*ib, inputbuf, inputlen);
+		if(tmp != NULL){
+			fwrite(inputbuf, inputlen, 1, tmp);
+		}else{
+			return 1;
+		}
 		if(feof(fi))
 			return 1;
 		return 0;
 	}else if(*rwnd != 0){
 		*rwnd = 0;
 		if(tmp!=NULL){
-			free(*ib);
 			fseek(tmp, 0L, SEEK_SET);
 			*ib=malloc(bufsiz);
 			*len=fread(*ib, 1, bufsiz, tmp);
+		}else{
+			*ib=malloc(inputlen);
+			memcpy(*ib, inputbuf, inputlen);
 		}
-		return 0;
-	}else if(tmp && !feof(tmp)){
-		*ib=malloc(bufsiz);
-		*len=fread(*ib, 1, bufsiz, tmp);
 		return 0;
 	}else{
-		int ret = 0;
-		*ib=malloc(bufsiz);
-		*len=fread(*ib, 1, bufsiz, fi);
-		if(feof(fi)){
-			ret = 1;
+		if(tmp && !feof(tmp)){
+			*ib=malloc(bufsiz);
+			*len=fread(*ib, 1, bufsiz, tmp);
+			return 0;
+		}else{
+			int ret = 0;
+			*ib=malloc(bufsiz);
+			*len=fread(*ib, 1, bufsiz, fi);
+			if(feof(fi)){
+				ret = 1;
+			}
+			return ret;
 		}
-		return ret;
 	}
 }
 
@@ -370,6 +394,7 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 				fprintf(stderr, "\n");
 			}
 		}
+		free(ib);
 		for(i=0;i<sizeof(codecs1)/sizeof(struct codec);++i){
 			if(max_i==-1){
 				max_i=i;
@@ -432,6 +457,7 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 				fprintf(stderr, "\n");
 			}
 		}
+		free(ib);
 		for(i=0;i<sizeof(codecs2)/sizeof(struct codec);++i){
 			if(max_i==-1){
 				max_i=i;
@@ -535,6 +561,7 @@ static void usage(void){
 }
 
 static void finish(int r){
+	free(inputbuf);
 	int i;
 	for(i=0;i<sizeof(codecs1)/sizeof(struct codec);++i){
 		if(codecs1[i].evl)
