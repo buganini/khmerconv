@@ -4,4 +4,4 @@
 
 #License
 	khmerconv.c could be BSDL
-	module/inter/KHMER-REORDER.c may need to be LGPL (because of khmer converter)
+	modules/inter/KHMER-REORDER.c may need to be LGPL (because of Khmer converter)
