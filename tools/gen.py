@@ -26,14 +26,15 @@ for font in d.find("font"):
 	for m in itertools.chain(font.find("global").find("map"), font.find("tounicode").find("map")):
 		m = pq(m)
 		if ftype not in fontdata:
-			fontdata[ftype] = []
-		fontdata[ftype].append((m.attr("legacy"), m.attr("unicode")))
+			fontdata[ftype] = {}
+		fontdata[ftype][m.attr("legacy")]=m.attr("unicode")
 
 def fwalk(ftype):
-	ret = []
+	ret = dict(fontdata[ftype])
 	if fonttype[ftype]["inherit"]:
-		ret = itertools.chain(ret, fwalk(fonttype[ftype]["inherit"]))
-	ret = itertools.chain(ret, fontdata[ftype])
+		inh = fwalk(fonttype[ftype]["inherit"])
+		for k in inh:
+			ret[k] = inh[k]
 	return ret
 
 
