@@ -44,7 +44,9 @@ for ftype in fonttype:
 		continue
 	fout = open("modules/inter/KHMER-"+ftype.upper()+".txt", "w")
 	data=[]
-	for f, t in  fwalk(ftype):
+	mapping = fwalk(ftype)
+	for f in  mapping:
+		t = mapping[f]
 		f = bcv1252.conv(b"".join([chr(eval(x)) for x in f.split(";")])).rstrip(",")
 		t = bcv.conv(t.encode("utf-8")).rstrip(",")
 		data.append((f, t))
