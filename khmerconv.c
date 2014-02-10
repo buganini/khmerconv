@@ -39,6 +39,7 @@ struct codec {
 static struct codec codecs1[6];
 static struct codec codecs2[11];
 static size_t bufsiz;
+static int force_k=-1;
 static char verbose;
 static char linebreak;
 
@@ -161,13 +162,23 @@ int main(int argc, char *argv[]){
 	i+=1;
 
 
-	while ((ch = getopt(argc, argv, "ifs:vwmx")) != -1)
+	while ((ch = getopt(argc, argv, "ifk:s:vwmx")) != -1)
 		switch(ch) {
 		case 'i':
 			inplace=1;
 			break;
 		case 'f':
 			inplace=2;
+			break;
+		case 'k':
+			for(i=0;i<sizeof(codecs2)/sizeof(struct codec);++i){
+				if(strcasecmp(codecs2[i].name, optarg)==0){
+					force_k=i;
+					break;
+				}
+			}
+			if(force_k==-1)
+				usage();
 			break;
 		case 's':
 			if(sscanf(optarg, "%d", &i)!=1)
@@ -426,63 +437,69 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 	}
 	ins0=codecs1[max_i].ins;
 
-	int rwnd=1;
-	rnd=0;
-	flush=0;
- 	candidates = sizeof(codecs2)/sizeof(struct codec);
-	max_i=-1;
-	while(candidates > 1 && !flush){
-		rnd += 1;
-		if(verbose){
-			fprintf(stderr, "Font detection round %d\n================================\n", rnd);
-		}
-		flush = input(fi, tmp, &ib, &len, &rwnd);
-		for(i = 0;i < sizeof(codecs2)/sizeof(struct codec);++i){
-			if(codecs2[i].up!=1)
-				continue;
-			ins=codecs2[i].evl;
-			bsdconv_counter_t *_ierr=bsdconv_counter(ins, "IERR");
-			ins->input.data=ib;
-			ins->input.flags=0;
-			ins->input.next=NULL;
-			ins->input.len=len;
-			ins->flush=flush;
-			ins->output_mode=BSDCONV_NULL;
-			bsdconv(ins);
-			double ierr=(double)(*_ierr);
-			codecs2[i].wv=-ierr;
+	int rwnd;
+	if(force_k==-1){
+		rwnd=1;
+		rnd=0;
+		flush=0;
+	 	candidates = sizeof(codecs2)/sizeof(struct codec);
+		max_i=-1;
+		while(candidates > 1 && !flush){
+			rnd += 1;
 			if(verbose){
-				fprintf(stderr, "%s: %.6lf\n", codecs2[i].name, codecs2[i].wv);
-				fprintf(stderr, "\tIERR: %.0lf\n", ierr);
-				fprintf(stderr, "\n");
+				fprintf(stderr, "Font detection round %d\n================================\n", rnd);
+			}
+			flush = input(fi, tmp, &ib, &len, &rwnd);
+			for(i = 0;i < sizeof(codecs2)/sizeof(struct codec);++i){
+				if(codecs2[i].up!=1)
+					continue;
+				ins=codecs2[i].evl;
+				bsdconv_counter_t *_ierr=bsdconv_counter(ins, "IERR");
+				ins->input.data=ib;
+				ins->input.flags=0;
+				ins->input.next=NULL;
+				ins->input.len=len;
+				ins->flush=flush;
+				ins->output_mode=BSDCONV_NULL;
+				bsdconv(ins);
+				double ierr=(double)(*_ierr);
+				codecs2[i].wv=-ierr;
+				if(verbose){
+					fprintf(stderr, "%s: %.6lf\n", codecs2[i].name, codecs2[i].wv);
+					fprintf(stderr, "\tIERR: %.0lf\n", ierr);
+					fprintf(stderr, "\n");
+				}
+			}
+			free(ib);
+			for(i=0;i<sizeof(codecs2)/sizeof(struct codec);++i){
+				if(max_i==-1){
+					max_i=i;
+					continue;
+				}
+				if(codecs2[i].up!=1)
+					continue;
+				if(codecs2[i].wv > codecs2[max_i].wv){
+					codecs2[max_i].up=0;
+					max_i=i;
+					candidates-=1;
+				}else if(codecs2[i].wv < codecs2[max_i].wv){
+					codecs2[i].up=0;
+					candidates-=1;
+				}
+			}
+			if(tmp==NULL){
+				fprintf(stderr, "WARNING: Font detection is early finished because of temporary file creation failure\n");
+				break;
 			}
 		}
-		free(ib);
-		for(i=0;i<sizeof(codecs2)/sizeof(struct codec);++i){
-			if(max_i==-1){
-				max_i=i;
-				continue;
-			}
-			if(codecs2[i].up!=1)
-				continue;
-			if(codecs2[i].wv > codecs2[max_i].wv){
-				codecs2[max_i].up=0;
-				max_i=i;
-				candidates-=1;
-			}else if(codecs2[i].wv < codecs2[max_i].wv){
-				codecs2[i].up=0;
-				candidates-=1;
-			}
+
+		if(verbose){
+			fprintf(stderr, "Detected font: %s\n", codecs2[max_i].name);
 		}
-		if(tmp==NULL){
-			fprintf(stderr, "WARNING: Font detection is early finished because of temporary file creation failure\n");
-			break;
-		}
+	}else{
+		max_i=force_k;
 	}
 
-	if(verbose){
-		fprintf(stderr, "Detected font: %s\n", codecs2[max_i].name);
-	}
 
 	if(codecs2[max_i].ins){
 		ins=codecs2[max_i].ins;
@@ -548,11 +565,12 @@ static bsdconv_counter_t process(FILE *fi, FILE *fo){
 
 static void usage(void){
 	(void)fprintf(stderr,
-		"usage: khmerconv [-bug] [-i bufsiz]\n"
+		"usage: khmerconv [-bug] [-i bufsiz] [-f fonttype]\n"
 		"\t -i\tSave in-place if no error\n"
 		"\t -f\tSave in-place regardless of errors (implies -i)\n"
 		"\t -s\tBuffer size used for encoding2 detection, default=8192\n"
 		"\t -v\tVerbose\n"
+		"\t -k\tFont type\n"
 		"\t -w\tUse Windows linebreak\n"
 		"\t -m\tUse Mac linebreak\n"
 		"\t -x\tUse Unix linebreak\n"
