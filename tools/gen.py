@@ -43,7 +43,7 @@ for ftype in fonttype:
 	if fonttype[ftype]["hidden"]:
 		continue
 	fout = open("modules/inter/KHMER-"+ftype.upper()+".txt", "w")
-	data=[]
+	data = []
 	mapping = fwalk(ftype)
 	for f in  mapping:
 		t = mapping[f]
