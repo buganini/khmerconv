@@ -54,7 +54,7 @@ fetch:
 		wget -O tmp/KhmerConverter.tgz "http://downloads.sourceforge.net/sourceforge/khmer/KhmerConverter_1.5.1.tar.gz";	\
 		cd tmp/; \
 		tar zxf KhmerConverter.tgz; \
-		cp KhmerConverter-1.5.1/modules/fontdata.xml ./; \
+		bsdconv 'UTF-8:REPLACE#01FEFF=:ASCII,ESCAPE#PREFIX=262378&suffix=3b' KhmerConverter-1.5.1/modules/fontdata.xml | sed 's/&#x17A3;/\&#x17A2;/i' > ./fontdata.xml; \
 		rm -rf KhmerConverter*; \
 	fi ;
 
