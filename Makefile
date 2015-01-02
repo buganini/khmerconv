@@ -27,7 +27,7 @@ builddir:
 	mkdir -p build/share/bsdconv/inter
 
 khmerconv: builddir khmerconv.c
-	$(CC) ${CFLAGS} -o khmerconv khmerconv.c ${LIBS}
+	$(CC) ${CFLAGS} -o build/bin/khmerconv khmerconv.c ${LIBS}
 
 codecs: builddir
 	for item in ${TODO_CODECS} ; do \
@@ -39,7 +39,7 @@ codecs: builddir
 install: install_main install_codecs
 
 install_main:
-	install -m 555 khmerconv ${DESTDIR}${PREFIX}/bin
+	install -m 555 build/bin/khmerconv ${DESTDIR}${PREFIX}/bin
 
 install_codecs:
 	for item in ${TODO_CODECS} ; do \
@@ -62,4 +62,4 @@ gen: fetch
 	python tools/gen.py tmp/fontdata.xml
 
 clean:
-	rm -f khmerconv
+	rm -rf build
